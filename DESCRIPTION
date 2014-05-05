@@ -1,0 +1,26 @@
+Package: DupChecker
+Type: Package
+Title: a package for checking high-throughput genomic data redundancy in meta-analysis
+Version: 0.98.4
+Date: 2014-05-05
+Author: Quanhu SHENG, Xi Chen
+Maintainer: Quanhu SHENG <shengqh@gmail.com>
+Description: Meta-analysis has become a popular approach for high-throughput genomic 
+  data analysis because it often can signifi-cantly increase power to detect biological 
+  signals or patterns in datasets. However, when using public-available databases for 
+  meta-analysis, duplication of samples is an often encoun-tered problem, especially 
+  for gene expression data. Not remov-ing duplicates would make study results questionable. 
+  We de-veloped a Bioconductor package Dupchecker that efficiently identifies duplicated 
+  samples by generating MD5 fingerprints for raw data. 
+License: GPL (>= 2)
+LazyLoad: yes
+Imports:
+  tools,
+  R.utils,
+	RCurl
+biocViews: microarray, GEO, redundancy
+VignetteBuilder: knitr
+Roxygen: list(wrap = FALSE)
+Suggests:
+    knitr
+BuildVignettes: yes
