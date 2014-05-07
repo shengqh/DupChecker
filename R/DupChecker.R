@@ -1,9 +1,3 @@
-#library("tools")
-#library("base")
-#library("utils")
-#library("R.utils")
-#library("RCurl")
-
 lappend <- function(lst, obj) {
   lst[[length(lst)+1]] <- obj
   return(lst)
@@ -35,7 +29,7 @@ arrayExpressDownload<-function(datasets,
                                targetDir = getwd(), 
                                filePattern=".CEL$", 
                                tar="internal", 
-                               overwrite=F){
+                               overwrite=FALSE){
   counts<-data.frame(dataset = datasets, count = rep(0, length(datasets)))
   for(dataset in datasets){
     subdir<-file.path(targetDir, dataset)
@@ -79,9 +73,12 @@ arrayExpressDownload<-function(datasets,
 ##'
 ##' @param datasets the GEO dataset names, for example: c("GSE14333") 
 ##' @param targetDir the target directory to store the datasets
-##' @param filePattern the file pattern of the expected data file extracted from gzipped file
-##' @param tar the path to the command to be used which is used in untar function
-##' @return a data frame containing dataset and how many target files in that dataset 
+##' @param filePattern the file pattern of the expected data file 
+##'        extracted from gzipped file
+##' @param tar the path to the command to be used which is used in 
+##'        untar function
+##' @return a data frame containing dataset and how many target files in 
+##'         that dataset 
 ##' @importFrom RCurl getURL
 ##' @importFrom R.utils gunzip
 ##' @export
@@ -154,7 +151,8 @@ geoDownload<-function(datasets,
 ##' @examples 
 ##' datafile<-buildFileTable(rootDir=getwd())
 ##' #or
-##' datafile<-buildFileTable(rootDir=c(paste0(getwd(), c("/E-TABM-43", "/E-TABM-158") )))
+##' datafile<-buildFileTable(rootDir=c(paste0(getwd(), 
+##'                          c("/E-TABM-43", "/E-TABM-158") )))
 buildFileTable<-function(rootDir, 
                          subDirPattern = NULL, 
                          filePattern = "CEL$", 
@@ -226,7 +224,7 @@ buildFileTable<-function(rootDir,
 ##'   }
 ##' }
 validateFile<-function(fileTable, saveMd5File=TRUE){
-  cat("calculate and validate md5 values, make sure the directory is readable\n")
+  cat("calculate and validate files, make sure the directory is readable\n")
   filemd5<-apply(fileTable, 1, function(x){
     celfile<-as.character(x["file"])
     if(!file.exists(celfile)){
@@ -282,7 +280,7 @@ validateFile<-function(fileTable, saveMd5File=TRUE){
       ds<-oldtable[oldtable$md5==md5,]
       for(j in c(1:length(dupdatasets))){
         if(dupdatasets[j] %in% ds$dataset){
-          restable[i,j]<-paste0(basename(ds[ds$dataset==dupdatasets[j], ]$file),
+          restable[i,j]<-paste0(basename(ds[ds$dataset==dupdatasets[j],]$file),
                                 collapse=";")
         }    
       }      

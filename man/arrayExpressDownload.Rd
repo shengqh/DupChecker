@@ -4,7 +4,7 @@
 \title{arrayExpressDownload}
 \usage{
 arrayExpressDownload(datasets, targetDir = getwd(), filePattern = ".CEL$",
-  tar = "internal", overwrite = F)
+  tar = "internal", overwrite = FALSE)
 }
 \arguments{
 \item{datasets}{the dataset names, for example: c("E-TABM-43", "E-TABM-158")}

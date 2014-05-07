@@ -11,12 +11,15 @@ geoDownload(datasets, targetDir = getwd(), filePattern = ".CEL$",
 
 \item{targetDir}{the target directory to store the datasets}
 
-\item{filePattern}{the file pattern of the expected data file extracted from gzipped file}
+\item{filePattern}{the file pattern of the expected data file
+extracted from gzipped file}
 
-\item{tar}{the path to the command to be used which is used in untar function}
+\item{tar}{the path to the command to be used which is used in
+untar function}
 }
 \value{
-a data frame containing dataset and how many target files in that dataset
+a data frame containing dataset and how many target files in
+        that dataset
 }
 \description{
 The function downloads GEO raw data from ncbi ftp server based on datasets

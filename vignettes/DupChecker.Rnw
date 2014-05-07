@@ -4,18 +4,20 @@
 
 \documentclass[12pt]{article}
 
-\author{Quanhu Sheng$^{*}$, Yu Shyr, Xi Chen \\[1em] \small{Center for Quantitative Sciences, Vanderbilt University, Nashville, USA} \\ 
+\author{Quanhu Sheng$^{*}$, Yu Shyr, Xi Chen \\[1em] \small{Center for 
+Quantitative Sciences, Vanderbilt University, Nashville, USA} \\ 
 \small{\texttt{$^*$shengqh (at) gmail.com}}}
 
-\title{DupChecker: a package for checking high-throughput genomic data redundancy in meta-analysis}
+\title{DupChecker: a package for checking high-throughput genomic data 
+redundancy in meta-analysis}
 
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-In this vignette, we demonstrate the application of DupChecker as
-a package for checking high-throughput genomic data redundancy in meta-analysis. 
+In this vignette, we demonstrate the application of DupChecker as a package for 
+checking high-throughput genomic data redundancy in meta-analysis. 
 DupChecker can download the GEO/ArrayExpress raw data files from EBI/ncbi ftp 
 server, extract individual CEL files, calculate MD5 fingerprint for each 
 CEL file and validate the redundancy of those CEL files. 
@@ -25,15 +27,21 @@ CEL file and validate the redundancy of those CEL files.
 
 \section{Introduction}
 
-Meta-analysis has become a popular approach for high-throughput genomic data analysis because it often can significantly increase power to detect biological signals or patterns in datasets. However, when using public-available databases for meta-analysis, duplication of samples is an often encountered problem, especially for gene expression data. Not removing duplicates would make study results questionable. We developed a package Dupchecker that efficiently identifies duplicated samples by generating MD5 fingerprints for raw data.  
+Meta-analysis has become a popular approach for high-throughput genomic data 
+analysis because it often can significantly increase power to detect biological 
+signals or patterns in datasets. However, when using public-available databases 
+for meta-analysis, duplication of samples is an often encountered problem, 
+especially for gene expression data. Not removing duplicates would make study 
+results questionable. We developed a package Dupchecker that efficiently 
+identifies duplicated samples by generating MD5 fingerprints for raw data.  
 
 \section{Standard workflow}
 
 \subsection{Quick start}
 
-Here we show the most basic steps for a validation procedure. You need to create 
-a target directory used to store the GEO data. Here, we assume the target directory is your work 
-directory.
+Here we show the most basic steps for a validation procedure. You need to 
+create a target directory used to store the GEO data. Here, we assume the 
+target directory is your work directory.
 
 <<quick, eval=FALSE,tidy=FALSE>>=
 library(DupChecker)
@@ -49,17 +57,19 @@ if(result$hasdup){
 
 \subsection{GEO/ArrayExpress data download}
 
-Firstly, function geoDownload/arrayExpressDownload will download raw data from ncbi/EBI 
-ftp server based on datasets user provided. Once the compressed raw data is downloaded, 
-CEL files will be extracted from compressed raw data. 
+Firstly, function geoDownload/arrayExpressDownload will download raw data from 
+ncbi/EBI ftp server based on datasets user provided. Once the compressed raw 
+data is downloaded, CEL files will be extracted from compressed raw data. 
 
-If the download or decompress cost too much time in R environment, user may download 
-the GEO/ArrayExpress raw data and decompress the data to individual CEL files using other 
-tools. The reason that we expect the CEL file not compressed CEL file is the compressed 
-files from same CEL file but by different compress softwares may have different MD5 fingerprint.
+If the download or decompress cost too much time in R environment, user may 
+download the GEO/ArrayExpress raw data and decompress the data to individual 
+CEL files using other tools. The reason that we expect the CEL file not 
+compressed CEL file is the compressed files from same CEL file but by different 
+compress softwares may have different MD5 fingerprint.
 
-The following code will download two datasets from ArrayExpress system and three datasets 
-from GEO system. It may cost a few minutes to a few hours based your network performance.
+The following code will download two datasets from ArrayExpress system and 
+three datasets from GEO system. It may cost a few minutes to a few hours based 
+your network performance.
 
 <<geodownload,eval=F,tidy=FALSE>>=
 library(DupChecker)
@@ -80,9 +90,10 @@ in that dataset.
 
 \subsection{Build file table}
 
-Secondly, function buildFileTable will try to find all files in the subdirectories 
-under root directories user provided. The result data frame contains two columns, 
-dataset and filename. Here, rootDir can also be an array of directories. 
+Secondly, function buildFileTable will try to find all files in the 
+subdirectories under root directories user provided. The result data frame 
+contains two columns, dataset and filename. Here, rootDir can also be an 
+array of directories. 
 
 <<buildFileTable,eval=F>>=
 datafile<-buildFileTable(rootDir=getwd())
@@ -91,10 +102,10 @@ datafile
 
 \subsection{Validate CEL file redundancy}
 
-The function validateFile will calculate MD5 fingerprint for each file in table and 
-then check to see if any two files have same MD5 fingerprint. The files with same 
-fingerprint will be treated as duplication. The function will return a table contains 
-all duplicated files and datasets.
+The function validateFile will calculate MD5 fingerprint for each file in 
+table and then check to see if any two files have same MD5 fingerprint. The 
+files with same fingerprint will be treated as duplication. The function will 
+return a table contains all duplicated files and datasets.
 
 <<validateFile,eval=F>>=
 result<-validateFile(datafile)
@@ -106,8 +117,9 @@ if(result$hasdup){
 
 \section{Discussion}
 
-Althrough DupChecker package is purposed for GEO/ArrayExpress data redundancy validation, 
-it can also be used for other file redundancy validation.
+We illustrated the application using gene expression data, but DupChecker 
+package can also be applied to other types of high-throughput genomic data 
+including next-generation sequencing data. 
 
 \section{Session Info}
 

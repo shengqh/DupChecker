@@ -30,6 +30,7 @@ user provided. The result table contains two columns, dataset and filename
 \examples{
 datafile<-buildFileTable(rootDir=getwd())
 #or
-datafile<-buildFileTable(rootDir=c(paste0(getwd(), c("/E-TABM-43", "/E-TABM-158") )))
+datafile<-buildFileTable(rootDir=c(paste0(getwd(),
+                         c("/E-TABM-43", "/E-TABM-158") )))
 }
 
