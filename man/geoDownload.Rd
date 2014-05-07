@@ -7,7 +7,7 @@ geoDownload(datasets, targetDir = getwd(), filePattern = ".CEL$",
   tar = "internal")
 }
 \arguments{
-\item{datasets}{the GEO dataset names, for example: c("GSE14333", "GSE13067", "GSE17538")}
+\item{datasets}{the GEO dataset names, for example: c("GSE14333")}
 
 \item{targetDir}{the target directory to store the datasets}
 
@@ -19,13 +19,15 @@ geoDownload(datasets, targetDir = getwd(), filePattern = ".CEL$",
 a data frame containing dataset and how many target files in that dataset
 }
 \description{
-The function downloads GEO raw data from ncbi ftp server based on datasets user provided. Once the compressed raw data is downloaded,
-individual gzipped target file will be extracted from compressed raw data, and individual target file will be extracted from corresponding
+The function downloads GEO raw data from ncbi ftp server based on datasets
+user provided. Once the compressed raw data is downloaded,
+individual gzipped target file will be extracted from compressed raw data,
+and individual target file will be extracted from corresponding
 gzipped file. The dataset/count table will be returned.
 }
 \examples{
-\dontrun{
-datatable<-geoDownload(datasets = c("GSE14333", "GSE13067", "GSE17538"), targetDir=getwd())
-}
+#download three datasets from GEO website
+#datatable<-geoDownload(datasets = c("GSE14333", "GSE13067", "GSE17538"),
+#                       targetDir=getwd())
 }
 

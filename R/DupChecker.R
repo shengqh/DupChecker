@@ -11,22 +11,31 @@ lappend <- function(lst, obj) {
 
 ##' arrayExpressDownload
 ##'
-##' The function downloads array express raw data from EBI ftp server based on datasets user provided. Once the compressed raw data is downloaded, 
-##' individual target file will be extracted from compressed raw data. The dataset/count table will be returned.
+##' The function downloads array express raw data from EBI ftp server based on 
+##' datasets user provided. Once the compressed raw data is downloaded, 
+##' individual target file will be extracted from compressed raw data. The 
+##' dataset/count table will be returned.
 ##'
-##' @param datasets the array express dataset names, for example: c("E-TABM-43", "E-TABM-158") 
+##' @param datasets the dataset names, for example: c("E-TABM-43", "E-TABM-158") 
 ##' @param targetDir the target directory to store the datasets
-##' @param filePattern the file pattern of the expected data file extracted from gzipped file
-##' @param tar the path to the command to be used which is used in untar function
-##' @param overwrite If TRUE, overwrite existing files, otherwise ignore such files. The equivalent of unzip -o.
-##' @return a data frame containing dataset and how many target files in that dataset 
+##' @param filePattern the file pattern of the expected data file extracted 
+##' from gzipped file
+##' @param tar the path to the command to be used in untar function
+##' @param overwrite If TRUE, overwrite existing files, otherwise ignore such 
+##' files. The equivalent of unzip -o.
+##' @return a data frame containing dataset and how many target files in that 
+##' dataset 
 ##' @importFrom RCurl getURL
 ##' @export
 ##' @examples 
-##' \dontrun{
-##' datatable<-arrayExpressDownload(datasets = c("E-TABM-43", "E-TABM-158"), targetDir=getwd())
-##' }
-arrayExpressDownload<-function(datasets, targetDir = getwd(), filePattern=".CEL$", tar="internal", overwrite=F){
+##' #download three datasets from ArrayExpress website
+##' #datatable<-arrayExpressDownload(datasets = c("E-TABM-43", "E-TABM-158"), 
+##' #                                targetDir=getwd())
+arrayExpressDownload<-function(datasets, 
+                               targetDir = getwd(), 
+                               filePattern=".CEL$", 
+                               tar="internal", 
+                               overwrite=F){
   counts<-data.frame(dataset = datasets, count = rep(0, length(datasets)))
   for(dataset in datasets){
     subdir<-file.path(targetDir, dataset)
@@ -37,7 +46,8 @@ arrayExpressDownload<-function(datasets, targetDir = getwd(), filePattern=".CEL$
       stop(paste0("Wrong array express dataset name : ", dataset, "\n"))
     }
     
-    curl<-paste0("ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/", dname, "/", dataset, "/")
+    curl<-paste0("ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/"
+                 , dname, "/", dataset, "/")
     filenames<-getURL(curl, ftp.use.epsv = FALSE, dirlistonly = TRUE)
     filenames<-strsplit(filenames, "\r*\n")[[1]]
     links<-paste0(curl, filenames)
@@ -61,11 +71,13 @@ arrayExpressDownload<-function(datasets, targetDir = getwd(), filePattern=".CEL$
 
 ##' geoDownload
 ##'
-##' The function downloads GEO raw data from ncbi ftp server based on datasets user provided. Once the compressed raw data is downloaded, 
-##' individual gzipped target file will be extracted from compressed raw data, and individual target file will be extracted from corresponding 
+##' The function downloads GEO raw data from ncbi ftp server based on datasets 
+##' user provided. Once the compressed raw data is downloaded, 
+##' individual gzipped target file will be extracted from compressed raw data, 
+##' and individual target file will be extracted from corresponding 
 ##' gzipped file. The dataset/count table will be returned.
 ##'
-##' @param datasets the GEO dataset names, for example: c("GSE14333", "GSE13067", "GSE17538") 
+##' @param datasets the GEO dataset names, for example: c("GSE14333") 
 ##' @param targetDir the target directory to store the datasets
 ##' @param filePattern the file pattern of the expected data file extracted from gzipped file
 ##' @param tar the path to the command to be used which is used in untar function
@@ -74,15 +86,19 @@ arrayExpressDownload<-function(datasets, targetDir = getwd(), filePattern=".CEL$
 ##' @importFrom R.utils gunzip
 ##' @export
 ##' @examples 
-##' \dontrun{
-##' datatable<-geoDownload(datasets = c("GSE14333", "GSE13067", "GSE17538"), targetDir=getwd())
-##' }
-geoDownload<-function(datasets, targetDir = getwd(), filePattern=".CEL$", tar="internal"){
+##' #download three datasets from GEO website
+##' #datatable<-geoDownload(datasets = c("GSE14333", "GSE13067", "GSE17538"), 
+##' #                       targetDir=getwd())
+geoDownload<-function(datasets, 
+                      targetDir = getwd(), 
+                      filePattern=".CEL$", 
+                      tar="internal"){
   counts<-data.frame(dataset = datasets, count = rep(0, length(datasets)))
   for(dataset in datasets){
     subdir<-file.path(targetDir, dataset)
     dir.create(subdir, showWarnings = FALSE)
-    curl<-paste0("ftp://ftp.ncbi.nlm.nih.gov/pub/geo/DATA/supplementary/series/", dataset, "/")
+    curl<-paste0("ftp://ftp.ncbi.nlm.nih.gov/pub/geo/DATA/supplementary/series/"
+                 , dataset, "/")
     filenames<-getURL(curl, ftp.use.epsv = FALSE, dirlistonly = TRUE)
     filenames<-strsplit(filenames, "\r*\n")[[1]]
     links<-paste0(curl, filenames)
@@ -121,23 +137,28 @@ geoDownload<-function(datasets, targetDir = getwd(), filePattern=".CEL$", tar="i
 
 ##' buildFileTable
 ##' 
-##' The function build file table in the subdirectories under root directories user provided. 
-##' The result table contains two columns, dataset and filename
+##' The function build file table in the subdirectories under root directories 
+##' user provided. The result table contains two columns, dataset and filename
 ##' 
-##' @param rootDir the root of directories whose sub directories contains file waiting for validation. 
-##'        It can be vector of directories, or just one directory 
+##' @param rootDir the root of directories whose sub directories contains file 
+##'        waiting for validation. It can be vector of directories, or just 
+##'        one directory 
 ##' @param subDirPattern the pattern of sub directory name
-##' @param filePattern the pattern of file waiting for validation. default is "CEL$"
-##' @param ignore.case ignore the case difference when list files from sub directory using filePattern
-##' @return a data frame containing full file name and its corresponding dataset, which will be used at validateFile
+##' @param filePattern the pattern of file waiting for validation. 
+##'        default is "CEL$"
+##' @param ignore.case ignore the case difference when list files from sub 
+##'        directory using filePattern
+##' @return a data frame containing full file name and its corresponding 
+##'         dataset, which will be used at validateFile
 ##' @export
 ##' @examples 
-##' \dontrun{
 ##' datafile<-buildFileTable(rootDir=getwd())
-##' or
+##' #or
 ##' datafile<-buildFileTable(rootDir=c(paste0(getwd(), c("/E-TABM-43", "/E-TABM-158") )))
-##' }
-buildFileTable<-function(rootDir, subDirPattern = NULL, filePattern = "CEL$", ignore.case=TRUE){
+buildFileTable<-function(rootDir, 
+                         subDirPattern = NULL, 
+                         filePattern = "CEL$", 
+                         ignore.case=TRUE){
   lst<-list()
   
   if(is.character(rootDir)){
@@ -147,7 +168,7 @@ buildFileTable<-function(rootDir, subDirPattern = NULL, filePattern = "CEL$", ig
   }
   
   for(dir in dirs){
-    subdirs<-list.dirs(dir, recursive=F)
+    subdirs<-list.dirs(dir, recursive=FALSE)
     if(!is.null(subDirPattern)){
       basedirs<-basename(subdirs)
       acceptSubDirs<-grepl(subDirPattern, basedirs, perl=TRUE)
@@ -157,14 +178,16 @@ buildFileTable<-function(rootDir, subDirPattern = NULL, filePattern = "CEL$", ig
     subdirs<-c(dir, subdirs)
     for(subdir in subdirs){
       basedir<-basename(subdir)
-      files<-list.files(subdir, filePattern, full.names=T, no..=T, ignore.case=ignore.case)
+      files<-list.files(subdir, filePattern, full.names=TRUE, no..=TRUE, 
+                        ignore.case=ignore.case)
       for(file in files){
         lst<-lappend(lst, c(basedir, file))
       }
     }
   }
   
-  result = data.frame(dataset = character(length(lst)), file = character(length(lst)), stringsAsFactors=FALSE)
+  result = data.frame(dataset = character(length(lst)), 
+                      file = character(length(lst)), stringsAsFactors=FALSE)
   if(length(lst) > 0){
     for(i in c(1:length(lst))){
       result$dataset[i]<-lst[[i]][1]
@@ -177,24 +200,30 @@ buildFileTable<-function(rootDir, subDirPattern = NULL, filePattern = "CEL$", ig
 
 ##' validateFile
 ##' 
-##' The function calculate MD5 fingerprint for each file in table and then check to see if any two files have 
-##' same MD5 fingerprint. The files with same fingerprint will be treated as duplication. The function will return 
+##' The function calculate MD5 fingerprint for each file in table and then 
+##' check to see if any two files have same MD5 fingerprint. The files with 
+##' same fingerprint will be treated as duplication. The function will return 
 ##' a table contains all duplicated files and datasets.
 ##' 
-##' @param fileTable a table with column name "dataset" and "file", here column "file" should contain full name of file.
-##' @param saveMd5File if calculated MD5 fingerprint should be save to local file
-##' @return a list contains two tables. One is the table contains three columns: "dataset", "file" and "md5". Another 
-##'         one is the duplication table whose row indicates MD5 fingerprint and whose column indicates dataset, table cell
-##'         indicates the corresponding filename.
+##' @param fileTable a table with column name "dataset" and "file", 
+##'        here column "file" should contain full name of file.
+##' @param saveMd5File if calculated MD5 fingerprint should be save to 
+##'        local file
+##' @return a list contains two tables. One is the table contains three 
+##'         columns: "dataset", "file" and "md5". Another one is the 
+##'         duplication table whose row indicates MD5 fingerprint and 
+##'         whose column indicates dataset, table cell indicates the 
+##'         corresponding filename.
 ##' @importFrom tools md5sum
 ##' @export
 ##' @examples 
-##' \dontrun{
-##' result<-validateFile(datafile)
-##' if(result$hasdup){
-##'   duptable<-result$duptable
-##'   write.csv(duptable, file="duptable.csv")
-##' }
+##' datafile<-buildFileTable(rootDir=getwd())
+##' if(nrow(datafile) > 0){
+##'   result<-validateFile(datafile)
+##'   if(result$hasdup){
+##'     duptable<-result$duptable
+##'     write.csv(duptable, file="duptable.csv")
+##'   }
 ##' }
 validateFile<-function(fileTable, saveMd5File=TRUE){
   cat("calculate and validate md5 values, make sure the directory is readable\n")
@@ -231,7 +260,8 @@ validateFile<-function(fileTable, saveMd5File=TRUE){
   
   if(length(dupmd5) > 0){
     dup<-oldtable[oldtable$md5 %in% dupmd5,]
-    warning(paste0(nrow(dup), " entries out of total ", nrow(oldtable), " entries are duplicated at least once. \n"))
+    warning(paste0(nrow(dup), " entries out of total ", nrow(oldtable), 
+                   " entries are duplicated at least once. \n"))
     
     dupdatasets<-unique(as.character(dup$dataset))
     dupdatasets<-dupdatasets[order(dupdatasets)]
@@ -242,7 +272,8 @@ validateFile<-function(fileTable, saveMd5File=TRUE){
       paste0(x, "[", dupcount, "/", totalcount, "]")
     }))
     
-    restable<-matrix(rep("", length(dupmd5) * length(dupdatasets)), nrow=length(dupmd5), ncol=length(dupdatasets))
+    restable<-matrix(rep("", length(dupmd5) * length(dupdatasets)), 
+                     nrow=length(dupmd5), ncol=length(dupdatasets))
     rownames(restable)<-dupmd5
     colnames(restable)<-dupdsnames
     
@@ -251,7 +282,8 @@ validateFile<-function(fileTable, saveMd5File=TRUE){
       ds<-oldtable[oldtable$md5==md5,]
       for(j in c(1:length(dupdatasets))){
         if(dupdatasets[j] %in% ds$dataset){
-          restable[i,j]<-paste0(basename(ds[ds$dataset == dupdatasets[j], ]$file), collapse=";")
+          restable[i,j]<-paste0(basename(ds[ds$dataset==dupdatasets[j], ]$file),
+                                collapse=";")
         }    
       }      
     }

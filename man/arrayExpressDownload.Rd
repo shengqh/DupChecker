@@ -7,26 +7,31 @@ arrayExpressDownload(datasets, targetDir = getwd(), filePattern = ".CEL$",
   tar = "internal", overwrite = F)
 }
 \arguments{
-\item{datasets}{the array express dataset names, for example: c("E-TABM-43", "E-TABM-158")}
+\item{datasets}{the dataset names, for example: c("E-TABM-43", "E-TABM-158")}
 
 \item{targetDir}{the target directory to store the datasets}
 
-\item{filePattern}{the file pattern of the expected data file extracted from gzipped file}
+\item{filePattern}{the file pattern of the expected data file extracted
+from gzipped file}
 
-\item{tar}{the path to the command to be used which is used in untar function}
+\item{tar}{the path to the command to be used in untar function}
 
-\item{overwrite}{If TRUE, overwrite existing files, otherwise ignore such files. The equivalent of unzip -o.}
+\item{overwrite}{If TRUE, overwrite existing files, otherwise ignore such
+files. The equivalent of unzip -o.}
 }
 \value{
-a data frame containing dataset and how many target files in that dataset
+a data frame containing dataset and how many target files in that
+dataset
 }
 \description{
-The function downloads array express raw data from EBI ftp server based on datasets user provided. Once the compressed raw data is downloaded,
-individual target file will be extracted from compressed raw data. The dataset/count table will be returned.
+The function downloads array express raw data from EBI ftp server based on
+datasets user provided. Once the compressed raw data is downloaded,
+individual target file will be extracted from compressed raw data. The
+dataset/count table will be returned.
 }
 \examples{
-\dontrun{
-datatable<-arrayExpressDownload(datasets = c("E-TABM-43", "E-TABM-158"), targetDir=getwd())
-}
+#download three datasets from ArrayExpress website
+#datatable<-arrayExpressDownload(datasets = c("E-TABM-43", "E-TABM-158"),
+#                                targetDir=getwd())
 }
 

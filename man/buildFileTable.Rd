@@ -7,27 +7,29 @@ buildFileTable(rootDir, subDirPattern = NULL, filePattern = "CEL$",
   ignore.case = TRUE)
 }
 \arguments{
-\item{rootDir}{the root of directories whose sub directories contains file waiting for validation.
-It can be vector of directories, or just one directory}
+\item{rootDir}{the root of directories whose sub directories contains file
+waiting for validation. It can be vector of directories, or just
+one directory}
 
 \item{subDirPattern}{the pattern of sub directory name}
 
-\item{filePattern}{the pattern of file waiting for validation. default is "CEL$"}
+\item{filePattern}{the pattern of file waiting for validation.
+default is "CEL$"}
 
-\item{ignore.case}{ignore the case difference when list files from sub directory using filePattern}
+\item{ignore.case}{ignore the case difference when list files from sub
+directory using filePattern}
 }
 \value{
-a data frame containing full file name and its corresponding dataset, which will be used at validateFile
+a data frame containing full file name and its corresponding
+        dataset, which will be used at validateFile
 }
 \description{
-The function build file table in the subdirectories under root directories user provided.
-The result table contains two columns, dataset and filename
+The function build file table in the subdirectories under root directories
+user provided. The result table contains two columns, dataset and filename
 }
 \examples{
-\dontrun{
 datafile<-buildFileTable(rootDir=getwd())
-or
+#or
 datafile<-buildFileTable(rootDir=c(paste0(getwd(), c("/E-TABM-43", "/E-TABM-158") )))
-}
 }
 
