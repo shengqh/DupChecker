@@ -1,4 +1,4 @@
-dupchecker
+DupChecker
 ==========
 * [Introduction](#Introduction)
 * [Download and install](#download)
