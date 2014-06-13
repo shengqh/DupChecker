@@ -26,7 +26,8 @@ same fingerprint will be treated as duplication. The function will return
 a table contains all duplicated files and datasets.
 }
 \examples{
-datafile<-buildFileTable(rootDir=getwd())
+rootDir<-paste0(dirname(tempdir()), "/DupChecker")
+datafile<-buildFileTable(rootDir=rootDir)
 if(nrow(datafile) > 0){
   result<-validateFile(datafile)
   if(result$hasdup){

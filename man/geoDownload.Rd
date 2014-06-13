@@ -4,7 +4,7 @@
 \title{geoDownload}
 \usage{
 geoDownload(datasets, targetDir = getwd(), filePattern = ".CEL$",
-  tar = "internal")
+  tar = "internal", overwrite = FALSE)
 }
 \arguments{
 \item{datasets}{the GEO dataset names, for example: c("GSE14333")}
@@ -16,6 +16,9 @@ extracted from gzipped file}
 
 \item{tar}{the path to the command to be used which is used in
 untar function}
+
+\item{overwrite}{If TRUE, overwrite existing files, otherwise ignore such
+files. The equivalent of unzip -o.}
 }
 \value{
 a data frame containing dataset and how many target files in
@@ -30,7 +33,8 @@ gzipped file. The dataset/count table will be returned.
 }
 \examples{
 #download three datasets from GEO website
-#datatable<-geoDownload(datasets = c("GSE14333", "GSE13067", "GSE17538"),
-#                       targetDir=getwd())
+rootDir<-paste0(dirname(tempdir()), "/DupChecker")
+dir.create(rootDir, showWarnings = FALSE)
+datatable<-geoDownload(datasets = c("GSE1478"), targetDir=rootDir)
 }
 

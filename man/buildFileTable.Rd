@@ -28,9 +28,10 @@ The function build file table in the subdirectories under root directories
 user provided. The result table contains two columns, dataset and filename
 }
 \examples{
-datafile<-buildFileTable(rootDir=getwd())
+rootDir<-paste0(dirname(tempdir()), "/DupChecker")
+datafile<-buildFileTable(rootDir=rootDir)
 #or
-datafile<-buildFileTable(rootDir=c(paste0(getwd(),
-                         c("/E-TABM-43", "/E-TABM-158") )))
+datafile<-buildFileTable(rootDir=c(paste0(rootDir,
+                         c("/E-MEXP-3872", "/GSE1478") )))
 }
 

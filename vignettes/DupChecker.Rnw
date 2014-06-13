@@ -3,6 +3,7 @@
 %\VignetteEngine{knitr::knitr}
 
 \documentclass[12pt]{article}
+\usepackage{hyperref}
 
 \author{Quanhu Sheng$^{*}$, Yu Shyr, Xi Chen \\[1em] \small{Center for 
 Quantitative Sciences, Vanderbilt University, Nashville, USA} \\ 
@@ -40,18 +41,26 @@ identifies duplicated samples by generating MD5 fingerprints for raw data.
 \subsection{Quick start}
 
 Here we show the most basic steps for a validation procedure. You need to 
-create a target directory used to store the GEO data. Here, we assume the 
-target directory is your work directory.
+create a target directory used to store the data. In order to illustrate the 
+procedure, here we used two very small datasets without redundant CEL files. 
+You may also try a real example with redundancy at example~\ref{realexample}. 
 
-<<quick, eval=FALSE,tidy=FALSE>>=
+<<quick, echo=TRUE, message=FALSE, warning=FALSE, tidy=FALSE>>=
 library(DupChecker)
-geoDownload(datasets = c("GSE14333", "GSE13067", 
-                       "GSE17538"), targetDir=getwd())
-datafile<-buildFileTable(rootDir=getwd())
+
+## Create a "DupChecker" directory under temporary directory
+rootDir<-paste0(dirname(tempdir()), "/DupChecker")
+dir.create(rootDir, showWarnings = FALSE)
+message(paste0("Downloading data to  ", rootDir, " ..."))
+
+geoDownload(datasets=c("GSE1478"), targetDir=rootDir)
+arrayExpressDownload(datasets=c("E-MEXP-3872"), targetDir=rootDir)
+
+datafile<-buildFileTable(rootDir=rootDir)
 result<-validateFile(datafile)
 if(result$hasdup){
   duptable<-result$duptable
-  write.csv(duptable, file="duptable.csv")
+  write.csv(duptable, file=paste0(rootDir, "/duptable.csv"))
 }
 @
 
@@ -59,34 +68,26 @@ if(result$hasdup){
 
 Firstly, function geoDownload/arrayExpressDownload will download raw data from 
 ncbi/EBI ftp server based on datasets user provided. Once the compressed raw 
-data is downloaded, CEL files will be extracted from compressed raw data. 
+data is downloaded, CEL files will be extracted from compressed raw data. Since 
+the files compressed from same raw CEL file by different softwares will have 
+different MD5 figureprints, we will validate the file redundancy using raw CEL 
+files.
 
-If the download or decompress cost too much time in R environment, user may 
-download the GEO/ArrayExpress raw data and decompress the data to individual 
-CEL files using other tools. The reason that we expect the CEL file not 
-compressed CEL file is the compressed files from same CEL file but by different 
-compress softwares may have different MD5 fingerprint.
-
-The following code will download two datasets from ArrayExpress system and 
-three datasets from GEO system. It may cost a few minutes to a few hours based 
-your network performance.
-
-<<geodownload,eval=F,tidy=FALSE>>=
-library(DupChecker)
-
-#download from ArrayExpress system
-datatable<-arrayExpress(datasets = c("E-TABM-158", 
-                        "E-TABM-43"), targetDir=getwd()))
+<<download, echo=TRUE, message=FALSE, warning=FALSE, tidy=FALSE>>=
+datatable<-geoDownload(datasets = c("GSE1478"), targetDir=rootDir)
 datatable
 
-#Or download from GEO system
-datatable<-geoDownload(datasets = c("GSE14333", "GSE13067", 
-                       "GSE17538"), targetDir=getwd())
+datatable<-arrayExpressDownload(datasets=c("E-MEXP-3872"), targetDir=rootDir)
 datatable
 @
-
 The datatable is a data frame containing dataset name and how many CEL files 
 in that dataset.
+
+There are two possible situations that you may want to download and decompress 
+the data using external tools. 1) The download or decompress cost too much time
+in R environment; 2) The internal tool in R may download imcomplete or 
+interrupted file for huge file which wil cause the "untar" or "gunzip" command 
+fail. 
 
 \subsection{Build file table}
 
@@ -95,9 +96,8 @@ subdirectories under root directories user provided. The result data frame
 contains two columns, dataset and filename. Here, rootDir can also be an 
 array of directories. 
 
-<<buildFileTable,eval=F>>=
-datafile<-buildFileTable(rootDir=getwd())
-datafile
+<<buildFileTable, message=FALSE, warning=FALSE>>=
+datafile<-buildFileTable(rootDir=rootDir)
 @
 
 \subsection{Validate CEL file redundancy}
@@ -107,14 +107,59 @@ table and then check to see if any two files have same MD5 fingerprint. The
 files with same fingerprint will be treated as duplication. The function will 
 return a table contains all duplicated files and datasets.
 
-<<validateFile,eval=F>>=
+<<validateFile, message=FALSE, warning=FALSE>>=
 result<-validateFile(datafile)
 if(result$hasdup){
   duptable<-result$duptable
-  write.csv(duptable, file="duptable.csv")
+  write.csv(duptable, file=paste0(rootDir, "/duptable.csv"))
 }
 @
 
+\subsection{Real example}
+\label{realexample}
+
+There are three colon cancer related datasets (GSE14333, GSE13067 and GSE17538)
+containing seriously data redundancy problem. User may run following codes
+to do the validation. It may cost a few miniutes to a few hours based on the 
+network bindwidth and the computer performance.
+
+<<realexample, eval=FALSE, tidy=FALSE>>=
+library(DupChecker)
+
+rootDir<-paste0(dirname(tempdir()), "/DupChecker_RealExample")
+dir.create(rootDir, showWarnings = FALSE)
+
+geoDownload(datasets = c("GSE14333", "GSE13067", 
+                       "GSE17538"), targetDir=rootDir)
+datafile<-buildFileTable(rootDir=rootDir)
+result<-validateFile(datafile)
+if(result$hasdup){
+  duptable<-result$duptable
+  write.csv(duptable, file=paste0(rootDir, "/duptable.csv"))
+}
+@
+
+Table \ref{tab:duptable} illustrated the duplication between those three 
+datasets. GSE13067 {[}64/74{]} means 64 of 74 CEL files in GSE13067 dataset 
+were duplicated in other two datasets.
+
+\begin{table}[ht]
+\centering
+\caption{Part of duplication table of three datasets} 
+\label{tab:duptable}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{|c|c|c|c|}
+\hline 
+MD5 & GSE13067{[}64/74{]}  & GSE14333{[}231/290{]}  & GSE17538{[}167/244{]} \\
+\hline 
+001ddd757f185561c9ff9b4e95563372  &  & GSM358397.CEL  & GSM437169.CEL \\
+00b2e2290a924fc2d67b40c097687404  &  & GSM358503.CEL  & GSM437210.CEL \\
+012ed9083b8f1b2ae828af44dbab29f0  & GSM327335.CEL  & GSM358620.CEL  & \\
+023c4e4f9ebfc09b838a22f2a7bdaa59  &  & GSM358441.CEL  & GSM437117.CEL \\
+\hline 
+\end{tabular}
+}
+\end{table}
 \section{Discussion}
 
 We illustrated the application using gene expression data, but DupChecker 

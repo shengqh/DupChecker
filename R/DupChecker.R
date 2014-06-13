@@ -3,6 +3,14 @@ lappend <- function(lst, obj) {
   return(lst)
 }
 
+getFtpFilenames <- function(curl) {
+  filenames<-getURL(curl, dirlistonly=TRUE)
+  tmpcon <- textConnection(filenames, "r")
+  b <- read.table(tmpcon)
+  close(tmpcon)
+  filenames<-as.character(b[, ncol(b)])
+}
+
 ##' arrayExpressDownload
 ##'
 ##' The function downloads array express raw data from EBI ftp server based on 
@@ -23,8 +31,9 @@ lappend <- function(lst, obj) {
 ##' @export
 ##' @examples 
 ##' #download three datasets from ArrayExpress website
-##' #datatable<-arrayExpressDownload(datasets = c("E-TABM-43", "E-TABM-158"), 
-##' #                                targetDir=getwd())
+##' rootDir<-paste0(dirname(tempdir()), "/DupChecker")
+##' dir.create(rootDir, showWarnings = FALSE)
+##' datatable<-arrayExpressDownload(datasets = c("E-MEXP-3872"), targetDir=rootDir)
 arrayExpressDownload<-function(datasets, 
                                targetDir = getwd(), 
                                filePattern=".CEL$", 
@@ -32,33 +41,46 @@ arrayExpressDownload<-function(datasets,
                                overwrite=FALSE){
   counts<-data.frame(dataset = datasets, count = rep(0, length(datasets)))
   for(dataset in datasets){
+    dname<-unlist(strsplit(dataset, '-'))[2]
+    if(is.na(dname)){
+      stop(paste0("Wrong array express dataset name : ", dataset))
+    }
+
     subdir<-file.path(targetDir, dataset)
     dir.create(subdir, showWarnings = FALSE)
     
-    dname<-unlist(strsplit(dataset, '-'))[2]
-    if(is.na(dname)){
-      stop(paste0("Wrong array express dataset name : ", dataset, "\n"))
-    }
+    message(paste0("Downloading ", dataset, " to ", subdir, " ..."))
     
     curl<-paste0("ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/"
                  , dname, "/", dataset, "/")
-    filenames<-getURL(curl, ftp.use.epsv = FALSE, dirlistonly = TRUE)
-    filenames<-strsplit(filenames, "\r*\n")[[1]]
-    links<-paste0(curl, filenames)
-    localfiles<-paste0(subdir, "/", filenames)
-    lapply(c(1:length(links)), function(x){
-      if(overwrite || !file.exists(localfiles[x])){
-        cat("downloading file ", links[x], "\n")
-        download.file(links[x], localfiles[x], method="auto", mode="wb")
+    
+    filenames<-getFtpFilenames(curl)
+    for(filename in filenames){
+      link<-paste0(curl, filename)
+      localfile<-paste0(subdir, "/", filename)
+      if(file.exists(localfile)){
+        if(overwrite){
+          unlink(localfile)
+        }
+      }
+      if(!file.exists(localfile)){
+        message("downloading file ", link)
+        download.file(link, localfile, method="auto", mode="wb")
+        Sys.sleep(2)
       }
       
-      if(grepl(".zip$", localfiles[x])){
-        unzip(localfiles[x], overwrite=overwrite, exdir=subdir)
+      if(grepl(".zip$", localfile)){
+        celfiles<-list.files(subdir, filePattern, ignore.case=TRUE)
+        if(length(celfiles) == 0 || overwrite){
+          message("de-compress file ", localfile, " ...")
+          unzip(localfile, overwrite=overwrite, exdir=subdir, setTimes=TRUE)
+        }
       }
-    })
+    }
+
     celfiles<-list.files(subdir, filePattern, ignore.case=TRUE)
     counts$count[counts$dataset==dataset] = length(celfiles)
-    cat("downloading file for dataset ", dataset, "finished.\n")
+    message("downloading file for dataset ", dataset, " finished.")
   }
   return(counts)
 }
@@ -77,6 +99,8 @@ arrayExpressDownload<-function(datasets,
 ##'        extracted from gzipped file
 ##' @param tar the path to the command to be used which is used in 
 ##'        untar function
+##' @param overwrite If TRUE, overwrite existing files, otherwise ignore such 
+##'        files. The equivalent of unzip -o.
 ##' @return a data frame containing dataset and how many target files in 
 ##'         that dataset 
 ##' @importFrom RCurl getURL
@@ -84,50 +108,75 @@ arrayExpressDownload<-function(datasets,
 ##' @export
 ##' @examples 
 ##' #download three datasets from GEO website
-##' #datatable<-geoDownload(datasets = c("GSE14333", "GSE13067", "GSE17538"), 
-##' #                       targetDir=getwd())
+##' rootDir<-paste0(dirname(tempdir()), "/DupChecker")
+##' dir.create(rootDir, showWarnings = FALSE)
+##' datatable<-geoDownload(datasets = c("GSE1478"), targetDir=rootDir)
 geoDownload<-function(datasets, 
                       targetDir = getwd(), 
                       filePattern=".CEL$", 
-                      tar="internal"){
+                      tar="internal",
+                      overwrite=FALSE){
   counts<-data.frame(dataset = datasets, count = rep(0, length(datasets)))
   for(dataset in datasets){
     subdir<-file.path(targetDir, dataset)
+    message(paste0("Downloading ", dataset, " to ", subdir, " ..."))
+
     dir.create(subdir, showWarnings = FALSE)
+    
     curl<-paste0("ftp://ftp.ncbi.nlm.nih.gov/pub/geo/DATA/supplementary/series/"
                  , dataset, "/")
-    filenames<-getURL(curl, ftp.use.epsv = FALSE, dirlistonly = TRUE)
-    filenames<-strsplit(filenames, "\r*\n")[[1]]
-    links<-paste0(curl, filenames)
-    localfiles<-paste0(subdir, "/", filenames)
-    lapply(c(1:length(links)), function(x){
-      if(!file.exists(localfiles[x])){
-        cat("downloading file ", links[x], "\n")
-        download.file(links[x], localfiles[x], method="auto", mode="wb")
+
+    filenames<-getFtpFilenames(curl)
+
+    if(overwrite){
+      celfiles<-list.files(subdir, filePattern, ignore.case=TRUE)
+      for(celfile in celfiles){
+        unlink(celfile)
       }
       
-      if(grepl(".tar$", localfiles[x])){
-        celfiles<-list.files(subdir, filePattern, ignore.case=TRUE)
-        if(length(celfiles) == 0){
-          gzfiles<-list.files(subdir, ".gz$")
-          if(length(gzfiles) == 0){
-            cat("de-compress file ", localfiles[x], "\n")
-            untar(localfiles[x], exdir=subdir, tar=tar)
-          }
-        }
-        gzfiles<-list.files(subdir, ".gz$")
-        if(length(gzfiles) > 0){
-          gzfiles<-file.path(subdir, gzfiles)
-          for(file in gzfiles){
-            cat("de-compress file ", file, "\n")
-            gunzip(file, overwrite = TRUE, remove=TRUE)
-          }
+      for(filename in filenames){
+        localfile<-paste0(subdir, "/", filename)
+        if(file.exists(localfile)){
+          unlink(localfile)
         }
       }
-    })
+    }
+    
+    celfiles<-list.files(subdir, filePattern, ignore.case=TRUE)
+    for(filename in filenames){
+      link<-paste0(curl, filename)
+      localfile<-paste0(subdir, "/", filename)
+      
+      if(!file.exists(localfile)){
+        message("downloading file ", link, " ...")
+        download.file(link, localfile, method="auto", mode="wb")
+        Sys.sleep(2)
+      }
+      
+      if(grepl(".tar$", localfile)){
+        if(length(celfiles) == 0 || overwrite){
+          message("untar file ", localfile, " ...")
+          untar(localfile, exdir=subdir, tar=tar)
+          Sys.sleep(2)
+        }
+      }
+    }
+    
+    gzfiles<-list.files(subdir, ".gz$")
+    if(length(gzfiles) > 0){
+      gzfiles<-file.path(subdir, gzfiles)
+      for(file in gzfiles){
+        message("de-compress file ", file, " ...")
+        tryCatch(gunzip(file, overwrite = TRUE, remove=TRUE),
+                 error=function(w){
+                   warning(paste0("de-compress file failed for ", file, " : ", w))
+                 })
+      }
+    }
+    
     celfiles<-list.files(subdir, filePattern, ignore.case=TRUE)
     counts$count[counts$dataset==dataset] = length(celfiles)
-    cat("downloading file for dataset ", dataset, "finished.\n")
+    message("downloading file for dataset ", dataset, " finished.")
   }
   return(counts)
 }
@@ -149,10 +198,11 @@ geoDownload<-function(datasets,
 ##'         dataset, which will be used at validateFile
 ##' @export
 ##' @examples 
-##' datafile<-buildFileTable(rootDir=getwd())
+##' rootDir<-paste0(dirname(tempdir()), "/DupChecker")
+##' datafile<-buildFileTable(rootDir=rootDir)
 ##' #or
-##' datafile<-buildFileTable(rootDir=c(paste0(getwd(), 
-##'                          c("/E-TABM-43", "/E-TABM-158") )))
+##' datafile<-buildFileTable(rootDir=c(paste0(rootDir, 
+##'                          c("/E-MEXP-3872", "/GSE1478") )))
 buildFileTable<-function(rootDir, 
                          subDirPattern = NULL, 
                          filePattern = "CEL$", 
@@ -164,7 +214,7 @@ buildFileTable<-function(rootDir,
   }else{
     dirs<-rootDir
   }
-  
+  tempdir
   for(dir in dirs){
     subdirs<-list.dirs(dir, recursive=FALSE)
     if(!is.null(subDirPattern)){
@@ -215,7 +265,8 @@ buildFileTable<-function(rootDir,
 ##' @importFrom tools md5sum
 ##' @export
 ##' @examples 
-##' datafile<-buildFileTable(rootDir=getwd())
+##' rootDir<-paste0(dirname(tempdir()), "/DupChecker")
+##' datafile<-buildFileTable(rootDir=rootDir)
 ##' if(nrow(datafile) > 0){
 ##'   result<-validateFile(datafile)
 ##'   if(result$hasdup){
@@ -224,7 +275,7 @@ buildFileTable<-function(rootDir,
 ##'   }
 ##' }
 validateFile<-function(fileTable, saveMd5File=TRUE){
-  cat("calculate and validate files, make sure the directory is readable\n")
+  message("calculate and validate files, make sure the directory is readable.")
   filemd5<-apply(fileTable, 1, function(x){
     celfile<-as.character(x["file"])
     if(!file.exists(celfile)){
@@ -238,7 +289,7 @@ validateFile<-function(fileTable, saveMd5File=TRUE){
     }
     
     if(nchar(md5) == 0){
-      cat("calculate md5 for", celfile, "...\n")
+      message("calculate md5 for", celfile, "...")
       md5<-md5sum(celfile)
       if(saveMd5File){
         fileConn<-file(md5file)
@@ -259,7 +310,7 @@ validateFile<-function(fileTable, saveMd5File=TRUE){
   if(length(dupmd5) > 0){
     dup<-oldtable[oldtable$md5 %in% dupmd5,]
     warning(paste0(nrow(dup), " entries out of total ", nrow(oldtable), 
-                   " entries are duplicated at least once. \n"))
+                   " entries are duplicated at least once."))
     
     dupdatasets<-unique(as.character(dup$dataset))
     dupdatasets<-dupdatasets[order(dupdatasets)]

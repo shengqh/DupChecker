@@ -31,7 +31,8 @@ dataset/count table will be returned.
 }
 \examples{
 #download three datasets from ArrayExpress website
-#datatable<-arrayExpressDownload(datasets = c("E-TABM-43", "E-TABM-158"),
-#                                targetDir=getwd())
+rootDir<-paste0(dirname(tempdir()), "/DupChecker")
+dir.create(rootDir, showWarnings = FALSE)
+datatable<-arrayExpressDownload(datasets = c("E-MEXP-3872"), targetDir=rootDir)
 }
 
