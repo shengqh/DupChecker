@@ -12,7 +12,12 @@ Meta-analysis has become a popular approach for high-throughput genomic data ana
 
 <a name="download"/>
 # Download and install #
-You can install DupChecker package in R from [github](https://github.com/shengqh/DupChecker/) by following codes:
+You can install DupChecker package in R from [Bioconductor]("http://bioconductor.org/packages/devel/bioc/html/DupChecker.html") by following codes:
+
+  source("http://bioconductor.org/biocLite.R")
+  biocLite("DupChecker")
+
+or from [github](https://github.com/shengqh/DupChecker/) by following codes:
 
 	# install.packages("devtools")
 	devtools::install_github("shengqh/DupChecker")
@@ -24,7 +29,7 @@ Here we show the most basic steps for a validation procedure. You need to create
 
 	library(DupChecker)
 	geoDownload(datasets = c("GSE14333", "GSE13067", "GSE17538"), targetDir=getwd())
-	datafile<-buildFileTable(rootDir=getwd())
+	datafile<-buildFileTable(rootDir=getwd(), filePattern="cel$")
 	result<-validateFile(datafile)
 	if(result$hasdup){
   		duptable<-result$duptable
