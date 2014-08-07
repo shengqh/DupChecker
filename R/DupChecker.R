@@ -11,6 +11,23 @@ getFtpFilenames <- function(curl) {
   filenames<-as.character(b[, ncol(b)])
 }
 
+deleteFileAndMd5<-function(localfile){
+  if(file.exists(localfile)){
+    unlink(localfile)
+    
+    md5file = paste0(localfile, ".md5")
+    if(file.exists(md5file)){
+      unlink(md5file)
+    }
+  }
+}
+
+deleteFilesAndMd5<-function(localfiles){
+  for(localfile in localfiles){
+    deleteFileAndMd5(localfile)
+  }
+}
+
 ##' arrayExpressDownload
 ##'
 ##' The function downloads array express raw data from EBI ftp server based on 
@@ -36,9 +53,10 @@ getFtpFilenames <- function(curl) {
 ##' datatable<-arrayExpressDownload(datasets = c("E-MEXP-3872"), targetDir=rootDir)
 arrayExpressDownload<-function(datasets, 
                                targetDir = getwd(), 
-                               filePattern=".CEL$", 
+                               filePattern=NULL, 
                                tar="internal", 
                                overwrite=FALSE){
+  targetDir<-gsub("[/\\]$","",targetDir)
   counts<-data.frame(dataset = datasets, count = rep(0, length(datasets)))
   for(dataset in datasets){
     dname<-unlist(strsplit(dataset, '-'))[2]
@@ -96,7 +114,8 @@ arrayExpressDownload<-function(datasets,
 ##' @param datasets the GEO dataset names, for example: c("GSE14333") 
 ##' @param targetDir the target directory to store the datasets
 ##' @param filePattern the file pattern of the expected data file 
-##'        extracted from gzipped file
+##'        extracted from gzipped file, for example: "cel$" for AffyMetrix
+##'        CEL files. Default is NULL.
 ##' @param tar the path to the command to be used which is used in 
 ##'        untar function
 ##' @param overwrite If TRUE, overwrite existing files, otherwise ignore such 
@@ -113,13 +132,14 @@ arrayExpressDownload<-function(datasets,
 ##' datatable<-geoDownload(datasets = c("GSE1478"), targetDir=rootDir)
 geoDownload<-function(datasets, 
                       targetDir = getwd(), 
-                      filePattern=".CEL$", 
+                      filePattern=NULL, 
                       tar="internal",
                       overwrite=FALSE){
+  targetDir<-gsub("[/\\]$","",targetDir)
   counts<-data.frame(dataset = datasets, count = rep(0, length(datasets)))
   for(dataset in datasets){
     subdir<-file.path(targetDir, dataset)
-    message(paste0("Downloading ", dataset, " to ", subdir, " ..."))
+    message(paste0("Dataset ", dataset, " is downloading to ", subdir, " ..."))
 
     dir.create(subdir, showWarnings = FALSE)
     
@@ -128,24 +148,13 @@ geoDownload<-function(datasets,
 
     filenames<-getFtpFilenames(curl)
 
-    if(overwrite){
-      celfiles<-list.files(subdir, filePattern, ignore.case=TRUE)
-      for(celfile in celfiles){
-        unlink(celfile)
-      }
-      
-      for(filename in filenames){
-        localfile<-paste0(subdir, "/", filename)
-        if(file.exists(localfile)){
-          unlink(localfile)
-        }
-      }
-    }
-    
-    celfiles<-list.files(subdir, filePattern, ignore.case=TRUE)
     for(filename in filenames){
       link<-paste0(curl, filename)
       localfile<-paste0(subdir, "/", filename)
+
+      if(overwrite){
+        deleteFileAndMd5(localfile)
+      }
       
       if(!file.exists(localfile)){
         message("downloading file ", link, " ...")
@@ -154,29 +163,35 @@ geoDownload<-function(datasets,
       }
       
       if(grepl(".tar$", localfile)){
-        if(length(celfiles) == 0 || overwrite){
-          message("untar file ", localfile, " ...")
-          untar(localfile, exdir=subdir, tar=tar)
-          Sys.sleep(2)
+        expectFiles<-paste0(subdir, "/", untar(localfile, tar=tar, list=TRUE))
+        unzippedFiles<-gsub("\\.gz$","",expectFiles)
+        if(overwrite){
+          deleteFilesAndMd5(expectFiles)
+          deleteFilesAndMd5(unzippedFiles)
         }
-      }
-    }
-    
-    gzfiles<-list.files(subdir, ".gz$")
-    if(length(gzfiles) > 0){
-      gzfiles<-file.path(subdir, gzfiles)
-      for(file in gzfiles){
-        message("de-compress file ", file, " ...")
-        tryCatch(gunzip(file, overwrite = TRUE, remove=TRUE),
-                 error=function(w){
-                   warning(paste0("de-compress file failed for ", file, " : ", w))
-                 })
+        
+        if(all(file.exists(unzippedFiles))){
+          next
+        }
+        
+        message("untar file ", localfile, " ...")
+        untar(localfile, exdir=subdir, tar=tar)
+        Sys.sleep(2)
+        
+        gzfiles<-expectFiles[grepl("\\.gz$", expectFiles)]
+        for(file in gzfiles){
+          message("de-compress file ", file, " ...")
+          tryCatch(gunzip(file, overwrite = TRUE, remove=TRUE),
+                   error=function(w){
+                     warning(paste0("de-compress file failed for ", file, " : ", w))
+                   })
+        }
       }
     }
     
     celfiles<-list.files(subdir, filePattern, ignore.case=TRUE)
     counts$count[counts$dataset==dataset] = length(celfiles)
-    message("downloading file for dataset ", dataset, " finished.")
+    message("Dataset ", dataset, " has been downloaded.")
   }
   return(counts)
 }
@@ -189,9 +204,11 @@ geoDownload<-function(datasets,
 ##' @param rootDir the root of directories whose sub directories contains file 
 ##'        waiting for validation. It can be vector of directories, or just 
 ##'        one directory 
-##' @param subDirPattern the pattern of sub directory name
-##' @param filePattern the pattern of file waiting for validation. 
-##'        default is "CEL$"
+##' @param subDirPattern the pattern of sub directory name. Default is NULL.
+##' @param filePattern the pattern of file waiting for validation. For example, 
+##'        "cel$" for AffyMetrix CEL file only. Default is NULL. 
+##' @param ignoreExtensions the extensions of file that will be ignored. 
+##'        Default is c("tar", "md5").
 ##' @param ignore.case ignore the case difference when list files from sub 
 ##'        directory using filePattern
 ##' @return a data frame containing full file name and its corresponding 
@@ -205,7 +222,8 @@ geoDownload<-function(datasets,
 ##'                          c("/E-MEXP-3872", "/GSE1478") )))
 buildFileTable<-function(rootDir, 
                          subDirPattern = NULL, 
-                         filePattern = "CEL$", 
+                         filePattern = NULL, 
+                         ignoreExtensions = c("tar", "md5"),
                          ignore.case=TRUE){
   lst<-list()
   
@@ -214,7 +232,7 @@ buildFileTable<-function(rootDir,
   }else{
     dirs<-rootDir
   }
-  tempdir
+
   for(dir in dirs){
     subdirs<-list.dirs(dir, recursive=FALSE)
     if(!is.null(subDirPattern)){
@@ -228,7 +246,13 @@ buildFileTable<-function(rootDir,
       basedir<-basename(subdir)
       files<-list.files(subdir, filePattern, full.names=TRUE, no..=TRUE, 
                         ignore.case=ignore.case)
+      files<-files[!file.info(files)$isdir]
       for(file in files){
+        ext = file_ext(file)
+        if(ext %in% ignoreExtensions){
+          next
+        }
+        
         lst<-lappend(lst, c(basedir, file))
       }
     }
