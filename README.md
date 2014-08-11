@@ -70,10 +70,10 @@ Secondly, function buildFileTable will try to find all files in the subdirectori
 under root directories user provided. The result data frame contains two columns, 
 dataset and filename. Here, rootDir can also be an array of directories. 
 
-	datafile<-buildFileTable(rootDir=getwd())
+	datafile<-buildFileTable(rootDir=getwd(), filePattern="cel$")
 	datafile
 
-##Validate CEL file redundancy
+##Validate file redundancy
 
 The function validateFile will calculate MD5 fingerprint for each file in table and 
 then check to see if any two files have same MD5 fingerprint. The files with same 

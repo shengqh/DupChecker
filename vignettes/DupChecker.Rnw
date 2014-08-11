@@ -1,4 +1,4 @@
-%\VignetteIndexEntry{Validate GEO data with "dupchecker" package}
+%\VignetteIndexEntry{Validate GEO data with "DupChecker" package}
 %\VignettePackage{dupchecker}
 %\VignetteEngine{knitr::knitr}
 
@@ -20,8 +20,8 @@ redundancy in meta-analysis}
 In this vignette, we demonstrate the application of DupChecker as a package for 
 checking high-throughput genomic data redundancy in meta-analysis. 
 DupChecker can download the GEO/ArrayExpress raw data files from EBI/ncbi ftp 
-server, extract individual CEL files, calculate MD5 fingerprint for each 
-CEL file and validate the redundancy of those CEL files. 
+server, extract individual data files, calculate MD5 fingerprint for each 
+data file and validate the redundancy of those data files. 
 \end{abstract}
 
 \tableofcontents
@@ -33,8 +33,9 @@ analysis because it often can significantly increase power to detect biological
 signals or patterns in datasets. However, when using public-available databases 
 for meta-analysis, duplication of samples is an often encountered problem, 
 especially for gene expression data. Not removing duplicates would make study 
-results questionable. We developed a package Dupchecker that efficiently 
-identifies duplicated samples by generating MD5 fingerprints for raw data.  
+results questionable. We developed a package DupChecker that efficiently 
+identifies duplicated samples by generating MD5 fingerprints for individual data
+file.
 
 \section{Standard workflow}
 
@@ -56,7 +57,7 @@ message(paste0("Downloading data to  ", rootDir, " ..."))
 geoDownload(datasets=c("GSE1478"), targetDir=rootDir)
 arrayExpressDownload(datasets=c("E-MEXP-3872"), targetDir=rootDir)
 
-datafile<-buildFileTable(rootDir=rootDir)
+datafile<-buildFileTable(rootDir=rootDir, filePattern="cel$")
 result<-validateFile(datafile)
 if(result$hasdup){
   duptable<-result$duptable
@@ -68,10 +69,11 @@ if(result$hasdup){
 
 Firstly, function geoDownload/arrayExpressDownload will download raw data from 
 ncbi/EBI ftp server based on datasets user provided. Once the compressed raw 
-data is downloaded, CEL files will be extracted from compressed raw data. Since 
-the files compressed from same raw CEL file by different softwares will have 
-different MD5 figureprints, we will validate the file redundancy using raw CEL 
-files.
+data is downloaded, individual data files will be extracted from compressed raw 
+data. Some of the data files may have been compressed. Since the files compressed 
+from same data file by different softwares will have different MD5 figureprints, 
+we will decompress those compressed data files and validate the file redundancy 
+using decompressed data files.
 
 <<download, echo=TRUE, message=FALSE, warning=FALSE, tidy=FALSE>>=
 datatable<-geoDownload(datasets = c("GSE1478"), targetDir=rootDir)
@@ -80,27 +82,28 @@ datatable
 datatable<-arrayExpressDownload(datasets=c("E-MEXP-3872"), targetDir=rootDir)
 datatable
 @
-The datatable is a data frame containing dataset name and how many CEL files 
+The datatable is a data frame containing dataset name and how many files 
 in that dataset.
 
 There are two possible situations that you may want to download and decompress 
 the data using external tools. 1) The download or decompress cost too much time
 in R environment; 2) The internal tool in R may download imcomplete or 
-interrupted file for huge file which wil cause the "untar" or "gunzip" command 
-fail. 
+interrupted file for huge file which will cause the "untar" or "gunzip" command 
+fails. 
 
 \subsection{Build file table}
 
-Secondly, function buildFileTable will try to find all files in the 
-subdirectories under root directories user provided. The result data frame 
-contains two columns, dataset and filename. Here, rootDir can also be an 
-array of directories. 
+Secondly, function buildFileTable will try to find all files (default) or expected 
+files matching filePattern parameter in the subdirectories of root directory. 
+The result data frame contains two columns, dataset (directory name) and filename. 
+Here, rootDir can also be an array of directories. In following example, we just 
+focused on AffyMetrix CEL file only.
 
 <<buildFileTable, message=FALSE, warning=FALSE>>=
-datafile<-buildFileTable(rootDir=rootDir)
+datafile<-buildFileTable(rootDir=rootDir, filePattern="cel$")
 @
 
-\subsection{Validate CEL file redundancy}
+\subsection{Validate data file redundancy}
 
 The function validateFile will calculate MD5 fingerprint for each file in 
 table and then check to see if any two files have same MD5 fingerprint. The 
@@ -130,8 +133,8 @@ rootDir<-paste0(dirname(tempdir()), "/DupChecker_RealExample")
 dir.create(rootDir, showWarnings = FALSE)
 
 geoDownload(datasets = c("GSE14333", "GSE13067", 
-                       "GSE17538"), targetDir=rootDir)
-datafile<-buildFileTable(rootDir=rootDir)
+                         "GSE17538"), targetDir=rootDir)
+datafile<-buildFileTable(rootDir=rootDir, filePattern="cel$")
 result<-validateFile(datafile)
 if(result$hasdup){
   duptable<-result$duptable
