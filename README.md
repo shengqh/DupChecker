@@ -21,7 +21,7 @@ or from [Bioconductor](http://bioconductor.org/packages/devel/bioc/html/DupCheck
 
   source("http://bioconductor.org/biocLite.R")
   biocLite("DupChecker")
-
+  
 <a name="example"/>
 # Quick start
 
