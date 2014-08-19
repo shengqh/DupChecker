@@ -1,4 +1,4 @@
-%\VignetteIndexEntry{Validate GEO data with "DupChecker" package}
+%\VignetteIndexEntry{Validate genomic data with "DupChecker" package}
 %\VignettePackage{dupchecker}
 %\VignetteEngine{knitr::knitr}
 
@@ -23,6 +23,8 @@ DupChecker can download the GEO/ArrayExpress raw data files from EBI/ncbi ftp
 server, extract individual data files, calculate MD5 fingerprint for each 
 data file and validate the redundancy of those data files. 
 \end{abstract}
+
+DupChecker version: 1.1.1
 
 \tableofcontents
 
@@ -103,7 +105,7 @@ focused on AffyMetrix CEL file only.
 datafile<-buildFileTable(rootDir=rootDir, filePattern="cel$")
 @
 
-\subsection{Validate data file redundancy}
+\subsection{Validate file redundancy}
 
 The function validateFile will calculate MD5 fingerprint for each file in 
 table and then check to see if any two files have same MD5 fingerprint. The 

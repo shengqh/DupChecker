@@ -83,7 +83,7 @@ arrayExpressDownload<-function(datasets,
       }
       
       if(!file.exists(localfile)){
-        message("downloading file ", link, " ...")
+        message("Downloading file ", link, " ...")
         download.file(link, localfile, method="auto", mode="wb")
         Sys.sleep(2)
       }
@@ -98,7 +98,7 @@ arrayExpressDownload<-function(datasets,
           next
         }
         
-        message("uncompressing file ", localfile, " ...")
+        message("Decompressing file ", localfile, " ...")
         unzip(localfile, overwrite=overwrite, exdir=subdir, setTimes=TRUE)
         Sys.sleep(2)
       }
@@ -165,7 +165,7 @@ geoDownload<-function(datasets,
       }
       
       if(!file.exists(localfile)){
-        message("downloading file ", link, " ...")
+        message("Downloading file ", link, " ...")
         download.file(link, localfile, method="auto", mode="wb")
         Sys.sleep(2)
       }
@@ -182,13 +182,13 @@ geoDownload<-function(datasets,
           next
         }
         
-        message("untar file ", localfile, " ...")
+        message("Untar file ", localfile, " ...")
         untar(localfile, exdir=subdir, tar=tar)
         Sys.sleep(2)
         
         gzfiles<-expectFiles[grepl("\\.gz$", expectFiles)]
         for(file in gzfiles){
-          message("de-compress file ", file, " ...")
+          message("Decompressing file ", file, " ...")
           tryCatch(gunzip(file, overwrite = TRUE, remove=TRUE),
                    error=function(w){
                      warning(paste0("de-compress file failed for ", file, " : ", w))
@@ -324,7 +324,7 @@ validateFile<-function(fileTable, saveMd5File=TRUE){
     }
     
     if(nchar(md5) == 0){
-      message("calculate md5 for", celfile, "...")
+      message("Calculating md5 for ", celfile, "...")
       md5<-md5sum(celfile)
       if(saveMd5File){
         fileConn<-file(md5file)
