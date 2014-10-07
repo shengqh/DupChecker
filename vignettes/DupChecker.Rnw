@@ -51,9 +51,8 @@ data file and validate the redundancy of those data files.
       \hline 
       If you use DupChecker in published research, please cite:  \\
       \\
-      DupChecker: a bioconductor package for checking high-throughput genomic \\
-      data redundancy in meta-analysis, Quanhu Sheng, Yu Shyr, Xi Chen, \\
-      BMC bioinformatics 15 (1), 323 \\
+      Quanhu Sheng, Yu Shyr, Xi Chen.: DupChecker: a bioconductor package for checking high-throughput genomic \\
+      data redundancy in meta-analysis. BMC bioinformatics 2014 15:323. \\
       \hline 
     \end{tabular}
   \end{center}
