@@ -2,8 +2,8 @@ Package: DupChecker
 Type: Package
 Title: 
   a package for checking high-throughput genomic data redundancy in meta-analysis
-Version: 1.1.1
-Date: 2014-08-19
+Version: 1.2.0
+Date: 2014-10-07
 Author: Quanhu Sheng, Yu Shyr, Xi Chen
 Maintainer: "Quanhu SHENG" <shengqh@gmail.com>
 Description: 

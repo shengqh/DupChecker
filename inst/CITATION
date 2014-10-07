@@ -1,0 +1,15 @@
+citEntry(entry="article",
+         title = paste("DupChecker: a bioconductor package for checking high-throughput",
+                       "genomic data redundancy in meta-analysis"),
+         author = personList( as.person("Quanhu Sheng"),
+                              as.person("Yu Shyr"),
+                              as.person("Xi Chen")),
+         year = 2014,
+         journal = "BMC Bioinformatics",
+         doi = "10.1186/1471-2105-15-323",
+         url = "http://www.biomedcentral.com/1471-2105/15/323",
+         textVersion = 
+         paste( "DupChecker: a bioconductor package for checking high-throughput",
+                "genomic data redundancy in meta-analysis, Quanhu Sheng, Yu Shyr, Xi Chen,",
+                "BMC bioinformatics 15 (1), 323") )
+
