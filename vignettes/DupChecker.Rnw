@@ -52,7 +52,7 @@ data file and validate the redundancy of those data files.
       If you use DupChecker in published research, please cite:  \\
       \\
       Quanhu Sheng, Yu Shyr, Xi Chen.: DupChecker: a bioconductor package for checking high-throughput genomic \\
-      data redundancy in meta-analysis. BMC bioinformatics 2014 15:323. \\
+      data redundancy in meta-analysis. BMC bioinformatics 2014, 15:323. \\
       \hline 
     \end{tabular}
   \end{center}
